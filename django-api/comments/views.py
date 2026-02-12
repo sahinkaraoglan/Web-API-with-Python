@@ -3,8 +3,20 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from .models import Comment
 from .serializers import CommentSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.exceptions import ValidationError, PermissionDenied
+
+class AdminCommentList(generics.ListAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        pk = self.kwargs.get('pk')
+        queryset = Comment.objects.all()
+
+        if pk:
+            queryset = Comment.objects.filter(product_id=pk)
+        return queryset.order_by('-update')
 
 class CommentList(generics.ListAPIView):
     serializer_class = CommentSerializer
@@ -38,7 +50,19 @@ class CommentEdit(generics.UpdateAPIView):
         if obj.user != self.request.user:
             raise PermissionDenied("You dont have permission to edit this comment.")
         return obj
-  
+    
+class AdminCommentEdit(generics.UpdateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAdminUser]
+
+
+class AdminCommentDelete(generics.DestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAdminUser]
+
+    
 class CommentDelete(generics.DestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
