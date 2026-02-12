@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import get_user_model
+from rest_framework.authtoken.models import Token
 
 User = get_user_model()
 
@@ -17,9 +18,11 @@ class SignUpSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'password':'Passwords do not match'})
         return attrs
     
+
     #validated_data=hatalardan arındırılmış data.
     #Password2 kontrol amaçlı alındığı için burda onunla ilişkimiz kesiliyor.
     def create(self, validated_data):
         validated_data.pop('password2')
         user = User.objects.create_user(**validated_data)
+        Token.objects.create(user=user)
         return user

@@ -8,7 +8,11 @@ class CategorySerializer(serializers.Serializer):
     description = serializers.CharField(required=False,allow_blank=True,allow_null=True)
 
     def validate(self, data):
-        if data["name"] == data["description"]:
+        name = data.get("name")
+        description = data.get("description")
+
+
+        if description and name==description:
             raise serializers.ValidationError("Name and Description should be different.")
         
         return data

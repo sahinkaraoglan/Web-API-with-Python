@@ -5,7 +5,7 @@ from django.utils.text import slugify
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("Email must be set")
+            raise ValueError("Email must be set.")
         
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
@@ -24,6 +24,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
         
         return self.create_user(email, password, **extra_fields)
+
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
