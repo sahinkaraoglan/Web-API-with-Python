@@ -6,11 +6,18 @@ from rest_framework import status
 from rest_framework.permissions import IsAdminUser
 
 @api_view(['GET'])
-def catalog_list_product(request):
-        """Catalog List all products"""
-        products = Product.objects.filter(stock__gt  = 0)
-        serializer = ProductListSerializer(products, many=True)
-        return Response(serializer.data)
+def catalog_list_products(request):
+    """Catalog: List all products"""
+    products = Product.objects.filter(stock__gt = 0)
+    serializer = ProductListSerializer(products, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def catalog_list_products_by_catid(request, pk):
+    """Catalog: List all products By Category Id"""
+    products = Product.objects.filter(category = pk)
+    serializer = ProductListSerializer(products, many=True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 def catalog_product_details(request,pk):
@@ -19,18 +26,19 @@ def catalog_product_details(request,pk):
         product = Product.objects.get(pk=pk)
     except Product.DoesNotExist:
         return Response({'Error':'Product not found'}, status=404)
-        
+    
     serializer = ProductDetailsSerializer(product)
     return Response(serializer.data)
+    
 
-#Decorator
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
-def admin_list_product(request):
-        """Admin List all products"""
-        products = Product.objects.all()
-        serializer = ProductListSerializer(products, many=True)
-        return Response(serializer.data)
+def admin_list_products(request):
+    """Admin: List all products"""
+    products = Product.objects.all()
+    serializer = ProductListSerializer(products, many=True)
+    return Response(serializer.data)
+
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
@@ -40,8 +48,10 @@ def admin_product_details(request,pk):
         product = Product.objects.get(pk=pk)
     except Product.DoesNotExist:
         return Response({'Error':'Product not found'}, status=404)
+    
     serializer = ProductDetailsSerializer(product)
     return Response(serializer.data)
+    
 
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
@@ -66,6 +76,7 @@ def admin_edit_product(request,pk):
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+#Decorator
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])
 def admin_delete_product(request,pk):
@@ -75,4 +86,4 @@ def admin_delete_product(request,pk):
     except Product.DoesNotExist:
         return Response({'Error':'Product not found'}, status=404)
     product.delete()
-    return Response({'messagee': 'Product deleted.'}, status=status.HTTP_204_NO_CONTENT)
+    return Response({'message': 'Product deleted.'}, status=status.HTTP_204_NO_CONTENT)

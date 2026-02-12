@@ -3,11 +3,11 @@ from .models import Product
 from categories.models import Category
 from rest_framework.validators import UniqueValidator
 from comments.serializers import CommentSerializer
-from categories.serializers import CategorySerializer
+from categories.serializers import CategorySerializer, CategoryListSerializer
 import re
 
 class ProductListSerializer(serializers.ModelSerializer):
-    category = CategorySerializer()
+    category = CategoryListSerializer()
     class Meta:
         model = Product
         # fields = "__all__"
