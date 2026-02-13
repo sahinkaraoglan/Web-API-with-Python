@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from .models import Category
+from .services import get_category_or_404
 from .serializers import CategorySerializer, CategoryListSerializer, CategoryDetailsSerializer
 from rest_framework.response import Response
 from rest_framework import status
@@ -21,22 +22,15 @@ class AdminCategoryList(APIView):
         return Response(serializer.data)
     
 class CatalogCategoryDetails(APIView):
-
     def get(self, request, pk):
-        try:
-            category = Category.objects.get(pk=pk)
-        except Category.DoesNotExist:
-            return Response({'Error': 'Category not found'}, status=404)
+        category = get_category_or_404(pk)
         serializer = CategoryDetailsSerializer(category)
         return Response(serializer.data)
  
 class AdminCategoryDetails(APIView):
     permission_classes = [IsAdminUser]
     def get(self, request, pk):
-        try:
-            category = Category.objects.get(pk=pk)
-        except Category.DoesNotExist:
-            return Response({'Error': 'Category not found'}, status=404)
+        category = get_category_or_404(pk)
         serializer = CategoryDetailsSerializer(category)
         return Response(serializer.data)
     
@@ -54,7 +48,7 @@ class AdminCategoryCreate(APIView):
 class AdminCategoryEdit(APIView):
     permission_classes = [IsAdminUser]
     def put(self, request, pk):
-        category = Category.objects.get(pk=pk)
+        category = get_category_or_404(pk)
         serializer = CategorySerializer(category, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -64,9 +58,6 @@ class AdminCategoryEdit(APIView):
       
 class AdminCategoryDelete(APIView):
     def delete(self, request, pk):
-        try:
-            category = Category.objects.get(pk=pk)
-        except Category.DoesNotExist:
-            return Response({'Error': 'Category not found'}, status=404)
+        category = get_category_or_404(pk)
         category.delete()
         return Response({'message': 'Category deleted.'}, status=status.HTTP_204_NO_CONTENT)

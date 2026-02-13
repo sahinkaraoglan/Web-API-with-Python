@@ -1,6 +1,7 @@
 from .models import Product
 from rest_framework.decorators import api_view, permission_classes
 from .serializers import ProductSerializer, ProductListSerializer, ProductDetailsSerializer
+from .services import get_product_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser
@@ -22,11 +23,7 @@ def catalog_list_products_by_catid(request, pk):
 @api_view(['GET'])
 def catalog_product_details(request,pk):
     """Catalog: Get Product Details By Id"""
-    try:
-        product = Product.objects.get(pk=pk)
-    except Product.DoesNotExist:
-        return Response({'Error':'Product not found'}, status=404)
-    
+    product = get_product_or_404(pk)
     serializer = ProductDetailsSerializer(product)
     return Response(serializer.data)
     
@@ -44,11 +41,7 @@ def admin_list_products(request):
 @permission_classes([IsAdminUser])
 def admin_product_details(request,pk):
     """Admin: Get Product Details By Id"""
-    try:
-        product = Product.objects.get(pk=pk)
-    except Product.DoesNotExist:
-        return Response({'Error':'Product not found'}, status=404)
-    
+    product = get_product_or_404(pk)
     serializer = ProductDetailsSerializer(product)
     return Response(serializer.data)
     
@@ -68,7 +61,7 @@ def admin_create_product(request):
 @permission_classes([IsAdminUser])
 def admin_edit_product(request,pk):
     """Admin: Update Product"""
-    product = Product.objects.get(pk=pk)
+    product = get_product_or_404(pk)
     serializer = ProductSerializer(product,data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -81,9 +74,6 @@ def admin_edit_product(request,pk):
 @permission_classes([IsAdminUser])
 def admin_delete_product(request,pk):
     """Admin: Delete Product"""
-    try:
-        product = Product.objects.get(pk=pk)
-    except Product.DoesNotExist:
-        return Response({'Error':'Product not found'}, status=404)
+    product = get_product_or_404(pk)
     product.delete()
     return Response({'message': 'Product deleted.'}, status=status.HTTP_204_NO_CONTENT)

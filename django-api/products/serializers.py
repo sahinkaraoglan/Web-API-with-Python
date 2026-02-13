@@ -6,11 +6,15 @@ from comments.serializers import CommentSerializer
 from categories.serializers import CategorySerializer, CategoryListSerializer
 import re
 
+class OrderProductItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id','name','slug']
+
 class ProductListSerializer(serializers.ModelSerializer):
     category = CategoryListSerializer()
     class Meta:
         model = Product
-        # fields = "__all__"
         fields = ['id','name','price','stock','slug','category']
 
 class ProductDetailsSerializer(serializers.ModelSerializer):
@@ -18,7 +22,6 @@ class ProductDetailsSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     class Meta:
         model = Product
-        # fields = "__all__"
         fields = ['id','name','description','price','stock','slug','category','comments']
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -33,7 +36,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        # fields = "__all__"
         fields = ['id','name','description','price','stock','slug','category']
 
     def validate_name(self,value):
@@ -57,14 +59,13 @@ class ProductSerializer(serializers.ModelSerializer):
         return value
         
     def validate_slug(self, value):
-
-        if self.isinstance is None:
+        if self.instance is None:
             if Product.objects.filter(slug = value).exists():
                 raise serializers.ValidationError("Slug must be unique.")
-            else:
-                if Product.objects.filter(slug=value).exclude(pk=self.instance.pk).exists():
-                    raise serializers.ValidationError("Slug must be unique.")
-    
+        else:
+            if Product.objects.filter(slug=value).exclude(pk=self.instance.pk).exists():
+                raise serializers.ValidationError("Slug must be unique.")
+
         if not re.match('^[a-z0-9]+(?:-[a-z0-9]+)*$', value):
             raise serializers.ValidationError("Slug must be lowercase and can only contain hyphens and alphanumeric characters.")
         
