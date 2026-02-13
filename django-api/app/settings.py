@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'comments',
     'users',
     'carts',
+    'orders',
     'rest_framework',
     'rest_framework.authtoken',
 ]
