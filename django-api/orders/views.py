@@ -12,8 +12,14 @@ class OrderCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+        delivery_address_id = request.data.get('delivery_address_id')
+        billing_address_id = request.data.get('billing_address_id')
+
+        if not delivery_address_id or not billing_address_id:
+            return Response({'error': 'Delivery and billing addresses are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         cart = get_cart_or_create(request.user)
-        order = create_order_from_cart(request.user, cart)
+        order = create_order_from_cart(request.user, cart, delivery_address_id, billing_address_id)
 
         return Response({'message':'Order created successfully.','order_id':order.id}, status=status.HTTP_201_CREATED)
 
