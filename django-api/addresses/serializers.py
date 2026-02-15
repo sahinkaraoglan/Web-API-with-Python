@@ -20,7 +20,7 @@ class AddressDetailsSerializer(serializers.ModelSerializer):
         model = Address
         fields = ['id','full_name','phone','address_line','district','city', 'street','postal_code','address_type','is_default']
 
-class AddressCreateSerializer(serializers.ModelSerializer):
+class AddressSerializer(serializers.ModelSerializer):
     city_id = serializers.PrimaryKeyRelatedField(queryset=City.objects.all(), source="city")
 
     class Meta:
