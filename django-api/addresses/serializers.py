@@ -8,10 +8,10 @@ class CitySerializer(serializers.ModelSerializer):
 
 class AddressListSerializer(serializers.ModelSerializer):
     city = serializers.StringRelatedField()
-
+    user = serializers.StringRelatedField() #direkt kullanıcının ismini getirir.
     class Meta:
         model = Address
-        fields = ['id','full_name','district','city', 'address_type','is_default']
+        fields = ['id','full_name','district','city', 'address_type','is_default', 'user']
 
 class AddressDetailsSerializer(serializers.ModelSerializer):
     city = serializers.StringRelatedField()
