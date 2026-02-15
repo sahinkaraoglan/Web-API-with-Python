@@ -13,9 +13,16 @@ class AddressListSerializer(serializers.ModelSerializer):
         model = Address
         fields = ['id','full_name','district','city', 'address_type','is_default']
 
-class AddressSerializer(serializers.ModelSerializer):
-    city = CitySerializer(read_only=True)
+class AddressDetailsSerializer(serializers.ModelSerializer):
+    city = serializers.StringRelatedField()
 
     class Meta:
         model = Address
-        fields = ['id','full_name','phone','address_line','district','city','city_id', 'street','postal_code','address_type','is_default','created']
+        fields = ['id','full_name','phone','address_line','district','city', 'street','postal_code','address_type','is_default']
+
+class AddressCreateSerializer(serializers.ModelSerializer):
+    city_id = serializers.PrimaryKeyRelatedField(queryset=City.objects.all(), source="city")
+
+    class Meta:
+        model = Address
+        fields = ['full_name','phone','address_line','district','city_id', 'street','postal_code','address_type','is_default']
