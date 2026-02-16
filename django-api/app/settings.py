@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'carts',
     'orders',
     'addresses',
+    'payments',
     'rest_framework',
     'rest_framework.authtoken',
 ]
@@ -147,3 +148,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "users.CustomUser"
+
+#Development
+IYZICO_API_KEY = "sandbox-IkADBiPuqyWZg6YdUPiL76nPdmDXjzH2"
+IYZICO_SECRET_KEY = "sandbox-3Ssd1E6bGWXnexGr9DWIXkMOwzFTi0X4"
+IYZICO_BASE_URL = "sandbox-api.iyzipay.com"

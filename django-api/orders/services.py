@@ -3,9 +3,10 @@ from .models import Order, OrderItem
 from products.services import check_product_stock, decrease_product_stock
 from django.db import transaction
 from addresses.services import get_user_address_or_404
+from payments import create_payment
 
 @transaction.atomic
-def create_order_from_cart(user, cart, delivery_address_id, billing_address_id):
+def create_order_from_cart(user, cart, delivery_address_id, billing_address_id, card_data):
     cart_items = cart.items.select_related("product").all()
 
     if not cart_items:
@@ -18,7 +19,6 @@ def create_order_from_cart(user, cart, delivery_address_id, billing_address_id):
 
     for item in cart_items:
         check_product_stock(item.product, item.quantity)
-        decrease_product_stock(item.product, item.quantity)
 
         OrderItem.objects.create(
             order = order,
@@ -28,6 +28,12 @@ def create_order_from_cart(user, cart, delivery_address_id, billing_address_id):
         )
 
     order.calculate_total()
+
+    payment_result = create_payment(user, order, card_data)
+
+
+
+
     cart.items.all().delete()
 
-    return order
+    return order, payment_result
