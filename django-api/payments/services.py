@@ -2,6 +2,7 @@ from django.conf import settings
 from rest_framework.exceptions import ValidationError
 from decimal import Decimal
 from products.services import decrease_product_stock
+from coupons.services import apply_coupon_discount, increment_coupon_usage
 import json
 import iyzipay
 
@@ -16,12 +17,29 @@ def create_payment(user, order, card_data):
     if order.total_price <= 0:
         raise ValidationError({'error': 'Order total must be greater than zero.'})
     
+    discount_amount = Decimal(0.00)
+    if order.coupon:
+        discount_amount = apply_coupon_discount(order, order.coupon)
+    total_items_price = sum(Decimal(item.price) * item.quantity for item in order.items.all())
+
+    discount_ratio = (discount_amount / total_items_price) if total_items_price > 0 else Decimal('0')
+    
+    discount_amount = Decimal(0.00)
+    if order.coupon:
+        discount_amount = apply_coupon_discount(order, order.coupon)
+
+    total_items_price = sum(Decimal(item.price) * item.quantity for item in order.items.all())
+
+    discount_ratio = (discount_amount / total_items_price) if total_items_price > 0 else Decimal('0')
+
     basket_items = []
     basket_total = Decimal('0.00')
     
     for item in order.items.all():
-        item_price = Decimal(item.price * item.quantity).quantize(Decimal('0.01'))
-        basket_total += item_price
+        original_price = Decimal(item.price) * item.quantity
+        discount_price = (original_price * (1 - discount_ratio)).quantize(Decimal('0.01'))
+
+        basket_total += discount_price
 
         basket_items.append(
             {
@@ -29,11 +47,12 @@ def create_payment(user, order, card_data):
                 'name': item.product.name,
                 'category1': item.product.category.name if item.product.category else "",
                 'itemType': 'PHYSICAL',
-                'price': str(item_price)
+                'price': str(discount_price)
             }
         )
 
     order_total = Decimal(order.total_price).quantize(Decimal('0.01'))
+
     if basket_total != order_total:
         raise ValidationError(f'Basket total ({basket_total}) does not match order total ({order_total})')
     
@@ -106,6 +125,9 @@ def create_payment(user, order, card_data):
     
     for item in order.items.all():
         decrease_product_stock(item.product, item.quantity)
+
+    if order.coupon:
+        increment_coupon_usage(order.coupon)
 
     return result
 

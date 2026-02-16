@@ -17,6 +17,7 @@ class OrderCreateView(APIView):
         delivery_address_id = request.data.get('delivery_address_id')
         billing_address_id = request.data.get('billing_address_id')
         card_data = request.data.get('card_data')
+        coupon_code = request.data.get('coupon_code')
 
         if not delivery_address_id or not billing_address_id:
             return Response({'error': 'Delivery and billing addresses are required.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -27,7 +28,7 @@ class OrderCreateView(APIView):
         cart = get_cart_or_create(request.user)
 
         try:
-            order, payment_result = create_order_from_cart(request.user, cart, delivery_address_id, billing_address_id, card_data)
+            order, payment_result = create_order_from_cart(request.user, cart, delivery_address_id, billing_address_id, card_data, coupon_code)
         except ValidationError as e:
             return Response({'error': get_error_message(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:

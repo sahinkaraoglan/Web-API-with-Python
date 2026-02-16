@@ -17,7 +17,7 @@ class Coupon(models.Model):
         return (
             self.active
             and self.start_date <= now <= self.end_date
-            and (self.usage_limit is None or self.usege_count < self.usage_limit)
+            and (self.usage_limit is None or self.usage_count < self.usage_limit)
         )
     
     def __str__(self):

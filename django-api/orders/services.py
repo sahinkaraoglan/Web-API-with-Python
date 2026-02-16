@@ -1,12 +1,13 @@
 from rest_framework.exceptions import ValidationError
 from .models import Order, OrderItem
-from products.services import check_product_stock, decrease_product_stock
+from products.services import check_product_stock
 from django.db import transaction
 from addresses.services import get_user_address_or_404
 from payments.services import create_payment
+from coupons.services import get_valid_coupon_or_none
 
 @transaction.atomic
-def create_order_from_cart(user, cart, delivery_address_id, billing_address_id, card_data):
+def create_order_from_cart(user, cart, delivery_address_id, billing_address_id, card_data, coupon_code=None):
     cart_items = cart.items.select_related("product").all()
 
     if not cart_items:
@@ -14,11 +15,14 @@ def create_order_from_cart(user, cart, delivery_address_id, billing_address_id, 
     
     delivery_address = get_user_address_or_404(user, delivery_address_id)
     billing_address = get_user_address_or_404(user, billing_address_id)
+
+    coupon = get_valid_coupon_or_none(coupon_code)
         
     order = Order.objects.create(
         user=user, 
         delivery_address=delivery_address, 
-        billing_address=billing_address
+        billing_address=billing_address,
+        coupon = coupon
     )
 
     for item in cart_items:
