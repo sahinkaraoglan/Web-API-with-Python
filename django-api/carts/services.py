@@ -1,6 +1,7 @@
 from .models import Cart, CartItem
 from products.services import get_product_or_404, check_product_stock
 from rest_framework.exceptions import NotFound
+from django.db import transaction
 
 def get_cart_or_create(user):
     cart, created = Cart.objects.get_or_create(user = user) 
@@ -12,6 +13,8 @@ def get_cart_item_or_404(cart_item_id, user):
     except CartItem.DoesNotExist:
         raise NotFound({'error': 'Cart item not found.'})
 
+
+@transaction.atomic
 def add_product_to_cart(user, product_id, quantity):
     cart = get_cart_or_create(user)
     product = get_product_or_404(product_id)

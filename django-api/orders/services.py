@@ -3,7 +3,7 @@ from .models import Order, OrderItem
 from products.services import check_product_stock, decrease_product_stock
 from django.db import transaction
 from addresses.services import get_user_address_or_404
-from payments import create_payment
+from payments.services import create_payment
 
 @transaction.atomic
 def create_order_from_cart(user, cart, delivery_address_id, billing_address_id, card_data):

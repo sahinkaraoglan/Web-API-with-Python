@@ -9,15 +9,18 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
 from rest_framework import permissions
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 
 class AddToCartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        product_id = request.data.get('product_id')
-        quantity = request.data.get('quantity', 1)
-        add_product_to_cart(request.user, product_id, quantity)
+        try:    
+            product_id = request.data.get('product_id')
+            quantity = request.data.get('quantity', 1)
+            add_product_to_cart(request.user, product_id, quantity)
+        except ValidationError as e:
+            return Response({'error': str(e.detail[0])}, status= status.HTTP_400_BAD_REQUEST)
 
         return Response({'message':'Product added to cart.'}, status=status.HTTP_200_OK)
     
@@ -51,8 +54,7 @@ class UpdateCartItemView(APIView):
             return Response({'message':'Cart item deleted'}, status=status.HTTP_200_OK)
         
         return Response({'message':'Cart item updated.'}, status=status.HTTP_200_OK)
-            
-        
+               
 class DeleteCartItemView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
