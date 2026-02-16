@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework import permissions, status, generics
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
+from core.utils import get_error_message
 
 class OrderCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -20,24 +21,24 @@ class OrderCreateView(APIView):
         if not delivery_address_id or not billing_address_id:
             return Response({'error': 'Delivery and billing addresses are required.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        #card bilgisi sipariş oluşturulurken gönderilmediyse...
         if not card_data:
-            return Response({'error': 'Card data is required for payments'}, status= status.HTTP_400_BAD_REQUEST)
+            return Response({'error':'Card data is required for payments'}, status=status.HTTP_400_BAD_REQUEST)
 
         cart = get_cart_or_create(request.user)
+
         try:
             order, payment_result = create_order_from_cart(request.user, cart, delivery_address_id, billing_address_id, card_data)
         except ValidationError as e:
-            return Response({'error': str(e)}, status= status.HTTP_400_BAD_REQUEST)
-        
+            return Response({'error': get_error_message(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': 'Unexpected error: ' + str(e)}, status= status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+            return Response({'error': 'Unexpected error: ' + get_error_message(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         return Response(
             {
-                'message':'Order created successfully.','order_id':order.id,
-                'payment':payment_result
-            },
+                'message':'Order created successfully.',
+                'order_id':order.id,
+                'payment': payment_result
+            }, 
             status=status.HTTP_201_CREATED)
 
 class OrderListView(generics.ListAPIView):
@@ -54,7 +55,7 @@ class OrderDetailsView(generics.RetrieveAPIView):
     def get_queryset(self):
         return Order.objects.filter(user = self.request.user)
     
-    
+
 class AdminOrderListView(generics.ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAdminUser]

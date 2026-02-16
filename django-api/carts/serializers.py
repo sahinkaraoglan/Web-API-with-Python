@@ -9,6 +9,9 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ['id','product','product_name','product_price','quantity','total_price']
+        extra_kwargs = {
+            'product': {'read_only':True}
+        }
 
     def get_total_price(self, obj):
         return obj.get_total_price()

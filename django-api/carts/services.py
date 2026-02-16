@@ -13,7 +13,6 @@ def get_cart_item_or_404(cart_item_id, user):
     except CartItem.DoesNotExist:
         raise NotFound({'error': 'Cart item not found.'})
 
-
 @transaction.atomic
 def add_product_to_cart(user, product_id, quantity):
     cart = get_cart_or_create(user)

@@ -15,7 +15,11 @@ def create_order_from_cart(user, cart, delivery_address_id, billing_address_id, 
     delivery_address = get_user_address_or_404(user, delivery_address_id)
     billing_address = get_user_address_or_404(user, billing_address_id)
         
-    order = Order.objects.create(user=user, delivery_address=delivery_address, billing_address=billing_address)
+    order = Order.objects.create(
+        user=user, 
+        delivery_address=delivery_address, 
+        billing_address=billing_address
+    )
 
     for item in cart_items:
         check_product_stock(item.product, item.quantity)
@@ -30,9 +34,6 @@ def create_order_from_cart(user, cart, delivery_address_id, billing_address_id, 
     order.calculate_total()
 
     payment_result = create_payment(user, order, card_data)
-
-
-
 
     cart.items.all().delete()
 
