@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'orders',
     'addresses',
     'payments',
+    'coupons',
     'core',
     'rest_framework',
     'rest_framework.authtoken',
