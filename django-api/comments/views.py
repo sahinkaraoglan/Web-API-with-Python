@@ -5,10 +5,12 @@ from .models import Comment
 from .serializers import CommentSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.exceptions import ValidationError, PermissionDenied
+from core.paginations import LargeResultsSetPagination, StandardResultsSetPagination
 
 class AdminCommentList(generics.ListAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAdminUser]
+    pagination_class = LargeResultsSetPagination
 
     def get_queryset(self):
         pk = self.kwargs.get('pk')
@@ -20,6 +22,7 @@ class AdminCommentList(generics.ListAPIView):
 
 class CommentList(generics.ListAPIView):
     serializer_class = CommentSerializer
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         pk = self.kwargs['pk']
@@ -56,13 +59,11 @@ class AdminCommentEdit(generics.UpdateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAdminUser]
 
-
 class AdminCommentDelete(generics.DestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAdminUser]
 
-    
 class CommentDelete(generics.DestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer

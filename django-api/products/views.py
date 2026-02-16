@@ -5,13 +5,18 @@ from .services import get_product_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser
+from core.paginations import LargeResultsSetPagination, StandardResultsSetPagination
 
 @api_view(['GET'])
 def catalog_list_products(request):
     """Catalog: List all products"""
-    products = Product.objects.filter(stock__gt = 0)
-    serializer = ProductListSerializer(products, many=True)
-    return Response(serializer.data)
+    queryset = Product.objects.filter(stock__gt = 0)
+
+    paginator = StandardResultsSetPagination()
+    result_page = paginator.paginate_queryset(queryset, request)
+    serializer = ProductListSerializer(result_page, many=True)
+    
+    return paginator.get_paginated_response(serializer.data)
 
 @api_view(['GET'])
 def catalog_list_products_by_catid(request, pk):
