@@ -12,6 +12,11 @@ class OrderProductItemSerializer(serializers.ModelSerializer):
         model = Product
         fields = ['id','name','slug']
 
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ['id','image','alt_text']
+
 class ProductImageUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
@@ -23,9 +28,10 @@ class ProductImageUploadSerializer(serializers.ModelSerializer):
 
 class ProductListSerializer(serializers.ModelSerializer):
     category = CategoryListSerializer()
+    images = ProductImageSerializer(many=True, read_only=True)
     class Meta:
         model = Product
-        fields = ['id','name','price','stock','slug','category']
+        fields = ['id','name','price','stock','slug','category', 'images']
 
 class ProductDetailsSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)

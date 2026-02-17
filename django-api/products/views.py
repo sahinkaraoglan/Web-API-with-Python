@@ -1,6 +1,6 @@
-from .models import Product
+from .models import Product, ProductImage
 from rest_framework.decorators import api_view, permission_classes
-from .serializers import ProductSerializer, ProductListSerializer, ProductDetailsSerializer, ProductImageUploadSerializer
+from .serializers import ProductSerializer, ProductListSerializer, ProductDetailsSerializer, ProductImageUploadSerializer, ProductImageSerializer
 from .services import get_product_or_404
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,16 +9,9 @@ from core.paginations import LargeResultsSetPagination, StandardResultsSetPagina
 from rest_framework import generics, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ProductFilter
-
-class ProductImageUpload(generics.CreateAPIView):
-    serializer_class = ProductImageUploadSerializer
-    permission_classes = [IsAdminUser]
-
-    def perform_create(self, serializer):
-        product_id = self.kwargs.get('pk')
-        product = get_product_or_404(product_id)
-        serializer.save(product=product)
-
+import os
+import shutil
+from django.conf import settings
 
 class CatalogProductList(generics.ListAPIView):
     serializer_class = ProductListSerializer
@@ -29,6 +22,37 @@ class CatalogProductList(generics.ListAPIView):
     search_fields = ['name', 'description']
     ordering_fields = ['price', 'name']
     ordering = ['-id']
+
+class ProductImages(generics.ListCreateAPIView):
+    permission_classes = [IsAdminUser]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return ProductImageUploadSerializer
+        return ProductImageSerializer
+
+    def get_queryset(self):
+        product_id = self.kwargs.get('pk')
+        return ProductImage.objects.filter(product_id=product_id)
+
+    def perform_create(self, serializer):
+        product_id = self.kwargs.get('pk')
+        product = get_product_or_404(product_id)
+        serializer.save(product=product)
+
+class ProductImageDelete(generics.DestroyAPIView):
+    queryset = ProductImage.objects.all()
+    serializer_class = ProductImageSerializer
+    permission_classes = [IsAdminUser]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if instance.image:
+            instance.image.delete(save=False)
+        instance.delete()
+
+        return Response({'message': 'Image deleted.'}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
 def catalog_product_details(request,pk):
@@ -51,7 +75,7 @@ def admin_list_products(request):
 @permission_classes([IsAdminUser])
 def admin_product_details(request,pk):
     """Admin: Get Product Details By Id"""
-    product = get_product_or_404(pk)
+    product = get_product_or_404(pk)    
     serializer = ProductDetailsSerializer(product)
     return Response(serializer.data)
     
@@ -79,11 +103,25 @@ def admin_edit_product(request,pk):
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-#Decorator
-@api_view(['DELETE'])
-@permission_classes([IsAdminUser])
-def admin_delete_product(request,pk):
-    """Admin: Delete Product"""
-    product = get_product_or_404(pk)
-    product.delete()
-    return Response({'message': 'Product deleted.'}, status=status.HTTP_204_NO_CONTENT)
+
+class AdminDeleteProduct(generics.DestroyAPIView):
+    queryset = Product.objects.all()
+    permission_classes = [IsAdminUser]
+
+    def destroy(self, request, *args, **kwargs):
+        product = self.get_object() 
+
+        images = ProductImage.objects.filter(product = product)
+
+        for img in images:
+            if img.image:
+                img.image.delete(save=False)
+            img.delete()
+
+        product_folder = os.path.join(settings.MEDIA_ROOT, 'products', str(product.id))
+
+        if os.path.exists(product_folder):
+            shutil.rmtree(product_folder)
+
+        product.delete()
+        return Response({'message': 'Product and related images (and folder) deleted.'}, status=status.HTTP_204_NO_CONTENT)
