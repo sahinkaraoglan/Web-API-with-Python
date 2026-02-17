@@ -6,17 +6,17 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser
 from core.paginations import LargeResultsSetPagination, StandardResultsSetPagination
+from rest_framework import generics
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import ProductFilter
 
-@api_view(['GET'])
-def catalog_list_products(request):
-    """Catalog: List all products"""
+class CatalogProductList(generics.ListAPIView):
+    serializer_class = ProductListSerializer
+    pagination_class = StandardResultsSetPagination
     queryset = Product.objects.filter(stock__gt = 0)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProductFilter
 
-    paginator = StandardResultsSetPagination()
-    result_page = paginator.paginate_queryset(queryset, request)
-    serializer = ProductListSerializer(result_page, many=True)
-    
-    return paginator.get_paginated_response(serializer.data)
 
 @api_view(['GET'])
 def catalog_list_products_by_catid(request, pk):

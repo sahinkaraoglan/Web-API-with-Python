@@ -6,19 +6,16 @@ from .serializers import CommentSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from core.paginations import LargeResultsSetPagination, StandardResultsSetPagination
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import CommentFilter
 
 class AdminCommentList(generics.ListAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAdminUser]
     pagination_class = LargeResultsSetPagination
-
-    def get_queryset(self):
-        pk = self.kwargs.get('pk')
-        queryset = Comment.objects.all()
-
-        if pk:
-            queryset = Comment.objects.filter(product_id=pk)
-        return queryset.order_by('-update')
+    queryset = Comment.objects.all().order_by('-update')
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = CommentFilter
 
 class CommentList(generics.ListAPIView):
     serializer_class = CommentSerializer
@@ -42,7 +39,7 @@ class CommentCreate(generics.CreateAPIView):
 
         serializer.save(product_id=product_id,user=user)
 
-class CommentEdit(generics.UpdateAPIView):
+class CommentEditDelete(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
@@ -54,24 +51,8 @@ class CommentEdit(generics.UpdateAPIView):
             raise PermissionDenied("You dont have permission to edit this comment.")
         return obj
     
-class AdminCommentEdit(generics.UpdateAPIView):
+class AdminCommentEditDelete(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAdminUser]
-
-class AdminCommentDelete(generics.DestroyAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-    permission_classes = [IsAdminUser]
-
-class CommentDelete(generics.DestroyAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        obj = super().get_object()
-
-        if obj.user != self.request.user:
-            raise PermissionDenied("You dont have permission to delete this comment.")
-        return obj
+   
