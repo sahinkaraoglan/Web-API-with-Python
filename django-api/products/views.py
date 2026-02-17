@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser
 from core.paginations import LargeResultsSetPagination, StandardResultsSetPagination
-from rest_framework import generics
+from rest_framework import generics, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ProductFilter
 
@@ -14,8 +14,11 @@ class CatalogProductList(generics.ListAPIView):
     serializer_class = ProductListSerializer
     pagination_class = StandardResultsSetPagination
     queryset = Product.objects.filter(stock__gt = 0)
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ProductFilter
+    search_fields = ['name', 'description']
+    ordering_fields = ['price', 'name']
+    ordering = ['-id']
 
 
 @api_view(['GET'])
