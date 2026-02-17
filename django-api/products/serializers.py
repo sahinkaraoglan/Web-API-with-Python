@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Product
+from .models import Product, ProductImage
+from .services import validate_uploaded_image
 from categories.models import Category
 from rest_framework.validators import UniqueValidator
 from comments.serializers import CommentSerializer
@@ -10,6 +11,15 @@ class OrderProductItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id','name','slug']
+
+class ProductImageUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ['image', 'alt_text']
+
+    def validate_image(self, image):
+        validate_uploaded_image(image)
+        return image
 
 class ProductListSerializer(serializers.ModelSerializer):
     category = CategoryListSerializer()

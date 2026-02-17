@@ -1,6 +1,6 @@
 from .models import Product
 from rest_framework.decorators import api_view, permission_classes
-from .serializers import ProductSerializer, ProductListSerializer, ProductDetailsSerializer
+from .serializers import ProductSerializer, ProductListSerializer, ProductDetailsSerializer, ProductImageUploadSerializer
 from .services import get_product_or_404
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,6 +9,16 @@ from core.paginations import LargeResultsSetPagination, StandardResultsSetPagina
 from rest_framework import generics, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ProductFilter
+
+class ProductImageUpload(generics.CreateAPIView):
+    serializer_class = ProductImageUploadSerializer
+    permission_classes = [IsAdminUser]
+
+    def perform_create(self, serializer):
+        product_id = self.kwargs.get('pk')
+        product = get_product_or_404(product_id)
+        serializer.save(product=product)
+
 
 class CatalogProductList(generics.ListAPIView):
     serializer_class = ProductListSerializer
@@ -19,14 +29,6 @@ class CatalogProductList(generics.ListAPIView):
     search_fields = ['name', 'description']
     ordering_fields = ['price', 'name']
     ordering = ['-id']
-
-
-@api_view(['GET'])
-def catalog_list_products_by_catid(request, pk):
-    """Catalog: List all products By Category Id"""
-    products = Product.objects.filter(category = pk)
-    serializer = ProductListSerializer(products, many=True)
-    return Response(serializer.data)
 
 @api_view(['GET'])
 def catalog_product_details(request,pk):

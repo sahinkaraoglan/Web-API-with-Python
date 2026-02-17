@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -155,3 +156,8 @@ AUTH_USER_MODEL = "users.CustomUser"
 IYZICO_API_KEY = "sandbox-IkADBiPuqyWZg6YdUPiL76nPdmDXjzH2"
 IYZICO_SECRET_KEY = "sandbox-3Ssd1E6bGWXnexGr9DWIXkMOwzFTi0X4"
 IYZICO_BASE_URL = "sandbox-api.iyzipay.com"
+
+
+#Uploads
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
