@@ -6,7 +6,14 @@ from .serializers import CategorySerializer, CategoryListSerializer, CategoryDet
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser
+from drf_spectacular.utils import extend_schema
 
+@extend_schema(
+    responses=CategoryListSerializer(many=True),
+    summary="Kategori Listesi",
+    description="Onaylı olan tüm kategorileri getirir.",
+    tags=['Categories']
+)
 class CatalogCategoryList(APIView):
     def get(self, request):
         categories = Category.objects.all()
@@ -22,6 +29,7 @@ class AdminCategoryList(APIView):
         return Response(serializer.data)
     
 class CatalogCategoryDetails(APIView):
+
     def get(self, request, pk):
         category = get_category_or_404(pk)
         serializer = CategoryDetailsSerializer(category)
@@ -34,6 +42,11 @@ class AdminCategoryDetails(APIView):
         serializer = CategoryDetailsSerializer(category)
         return Response(serializer.data)
     
+@extend_schema(
+    request=CategorySerializer,
+    responses=CategorySerializer,
+    tags=['Categories']
+)
 class AdminCategoryCreate(APIView):
     permission_classes = [IsAdminUser]
 
@@ -55,7 +68,7 @@ class AdminCategoryEdit(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-      
+        
 class AdminCategoryDelete(APIView):
     def delete(self, request, pk):
         category = get_category_or_404(pk)

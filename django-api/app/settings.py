@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'core',
     'rest_framework',
     'rest_framework.authtoken',
-    'django_filters'
+    'django_filters',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -69,7 +70,21 @@ ROOT_URLCONF = 'app.urls'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS' : 'drf_spectacular.openapi.AutoSchema',
+
+    'DEFAULT_THROTTLE_CLASSES': [
+        'app.throttles.MinUserRateThrottle',
+        'app.throttles.MaxUserRateThrottle',
+        'app.throttles.MinAnonRateThrottle',
+        'app.throttles.MaxAnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+       'min_anon_request': '5/minute',
+       'max_anon_request': '100/day',       
+       'min_user_request': '10/minute',
+       'max_user_request': '1000/day',
+    }
 }
 
 
@@ -161,3 +176,12 @@ IYZICO_BASE_URL = "sandbox-api.iyzipay.com"
 #Uploads
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# API Docs
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'E-Ticaret API',
+    'DESCRIPTION': 'E-ticaret uygulamasıdır.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}

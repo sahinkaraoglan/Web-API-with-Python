@@ -10,6 +10,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id','username','email']
 
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField(help_text="Kullanıcı email adresiniz. Örneğin example@example.com")
+    password = serializers.CharField(help_text="Kullanıcı şifreniz. Şifreniz en az 7 karakter olmalıdır.")
+
 class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
