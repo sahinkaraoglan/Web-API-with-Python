@@ -6,6 +6,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer, TokenVerifySerializer
 from .serializer import SignUpSerializer, LoginSerializer
 from .tokens import get_tokens_for_user
+import logging
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -60,6 +63,7 @@ class LoginView(generics.GenericAPIView):
 
         if user is not None:
             tokens = get_tokens_for_user(user)
+            logger.info(f"User logged in: {user.username} (id={user.id})")
 
             response = {
                 "message": "Login successfull",
