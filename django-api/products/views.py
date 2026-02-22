@@ -12,6 +12,7 @@ from .filters import ProductFilter
 import os
 import shutil
 from django.conf import settings
+from core.permissions import IsAdminWithAPIKey
 
 class CatalogProductList(generics.ListAPIView):
     serializer_class = ProductListSerializer
@@ -63,7 +64,7 @@ def catalog_product_details(request,pk):
     
 
 @api_view(['GET'])
-@permission_classes([IsAdminUser])
+@permission_classes([IsAdminWithAPIKey])
 def admin_list_products(request):
     """Admin: List all products"""
     products = Product.objects.all()
@@ -72,7 +73,7 @@ def admin_list_products(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAdminUser])
+@permission_classes([IsAdminWithAPIKey])
 def admin_product_details(request,pk):
     """Admin: Get Product Details By Id"""
     product = get_product_or_404(pk)    
