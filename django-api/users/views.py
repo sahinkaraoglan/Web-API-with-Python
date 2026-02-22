@@ -1,18 +1,11 @@
-from rest_framework import generics
-from django.contrib.auth import get_user_model
-from .serializer import SignUpSerializer, LoginSerializer
-from rest_framework.views import APIView
-from django.contrib.auth import authenticate
+from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework import status
-from .tokens import get_tokens_for_user
+from django.contrib.auth import get_user_model, authenticate
 from drf_spectacular.utils import extend_schema
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView
-)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer, TokenVerifySerializer
+from .serializer import SignUpSerializer, LoginSerializer
+from .tokens import get_tokens_for_user
 
 User = get_user_model()
 
@@ -53,14 +46,15 @@ class SignUpView(generics.CreateAPIView):
     summary="Uygulamaya giriş",
     tags=['Users']
 )
-class LoginView(APIView):
+class LoginView(generics.GenericAPIView):
+    serializer_class = LoginSerializer
 
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = request.data.get("email")
-        password = request.data.get("password")
+        email = serializer.validated_data.get("email")
+        password = serializer.validated_data.get("password")
 
         user = authenticate(email=email, password=password)
 

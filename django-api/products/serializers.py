@@ -13,14 +13,17 @@ class OrderProductItemSerializer(serializers.ModelSerializer):
         fields = ['id','name','slug']
 
 class ProductImageSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = ProductImage
         fields = ['id','image','alt_text']
 
 class ProductImageUploadSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField()
+    
     class Meta:
         model = ProductImage
-        fields = ['image', 'alt_text']
+        fields = ['image','alt_text']
 
     def validate_image(self, image):
         validate_uploaded_image(image)
@@ -31,7 +34,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
     class Meta:
         model = Product
-        fields = ['id','name','price','stock','slug','category', 'images']
+        fields = ['id','name','price','stock','slug','category','images']
 
 class ProductDetailsSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)

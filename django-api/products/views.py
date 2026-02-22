@@ -1,19 +1,22 @@
-from .models import Product, ProductImage
-from rest_framework.decorators import api_view, permission_classes
-from .serializers import ProductSerializer, ProductListSerializer, ProductDetailsSerializer, ProductImageUploadSerializer, ProductImageSerializer
-from .services import get_product_or_404
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAdminUser
-from core.paginations import LargeResultsSetPagination, StandardResultsSetPagination
-from rest_framework import generics, filters
-from django_filters.rest_framework import DjangoFilterBackend
-from .filters import ProductFilter
 import os
 import shutil
+from rest_framework import generics, filters, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser
+from drf_spectacular.utils import extend_schema, extend_schema_view
+from django_filters.rest_framework import DjangoFilterBackend
 from django.conf import settings
-from core.permissions import IsAdminWithAPIKey
+from core.paginations import StandardResultsSetPagination
+from .models import Product, ProductImage
+from .serializers import ProductSerializer, ProductListSerializer, ProductDetailsSerializer, ProductImageUploadSerializer, ProductImageSerializer
+from .services import get_product_or_404
+from .filters import ProductFilter
 
+@extend_schema(
+    summary="Stokta olan ürünlerin listesi",
+    description="Stok miktarı 0'dan büyük olan ürünleri listeler. Filtreleme, arama ve sıralama desteklenir.",
+    tags=['Products'],
+)
 class CatalogProductList(generics.ListAPIView):
     serializer_class = ProductListSerializer
     pagination_class = StandardResultsSetPagination
@@ -24,6 +27,21 @@ class CatalogProductList(generics.ListAPIView):
     ordering_fields = ['price', 'name']
     ordering = ['-id']
 
+@extend_schema_view(
+    get=extend_schema(
+        summary="Ürün görsellerini listele",
+        description="Belirtilen ürünün görsellerini listeler.",
+        responses=ProductImageSerializer(many=True),
+        tags=['Products']
+    ),
+    post=extend_schema(
+        summary="Ürün görseli yükle",
+        description="Belirtilen ürüne yeni bir görsel yükler.",
+        request=ProductImageUploadSerializer,
+        responses=ProductImageSerializer,
+        tags=['Products']
+    )
+)
 class ProductImages(generics.ListCreateAPIView):
     permission_classes = [IsAdminUser]
 
@@ -41,6 +59,11 @@ class ProductImages(generics.ListCreateAPIView):
         product = get_product_or_404(product_id)
         serializer.save(product=product)
 
+@extend_schema(
+    summary="Ürün görselini sil",
+    description="Belirtilen ürün görselini siler ve ilişkili dosyayı da depolamadan kaldırır.",
+    tags=['Products']
+)
 class ProductImageDelete(generics.DestroyAPIView):
     queryset = ProductImage.objects.all()
     serializer_class = ProductImageSerializer
@@ -55,56 +78,68 @@ class ProductImageDelete(generics.DestroyAPIView):
 
         return Response({'message': 'Image deleted.'}, status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['GET'])
-def catalog_product_details(request,pk):
-    """Catalog: Get Product Details By Id"""
-    product = get_product_or_404(pk)
-    serializer = ProductDetailsSerializer(product)
-    return Response(serializer.data)
+@extend_schema(
+    summary="Catalog: Ürün detaylarını ID ile al",
+    description="Verilen ID'ye sahip ürünün detaylarını döner.",
+    tags=['Products'],
+    responses=ProductDetailsSerializer
+)
+class CatalogProductDetailView(generics.RetrieveAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductDetailsSerializer
+
+@extend_schema(
+    summary="Admin: Tüm ürünleri listele",
+    description="Yalnızca admin kullanıcıların erişebileceği, tüm ürünleri listeleyen endpoint.",
+    tags=['Products'],
+    responses=ProductListSerializer(many=True)
+)
+class AdminProductListView(generics.ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductListSerializer
+    permission_classes = [IsAdminUser]
+
+
+@extend_schema(
+    summary="Admin: Ürün detaylarını ID ile al",
+    description="Yalnızca admin kullanıcıların erişebileceği, verilen ID'ye sahip ürünün detaylarını döner.",
+    tags=['Products'],
+    responses=ProductDetailsSerializer
+)
+class AdminProductDetailView(generics.RetrieveAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductDetailsSerializer
+    permission_classes = [IsAdminUser]
+
+@extend_schema(
+    summary="Admin: Ürün oluştur",
+    description="Yalnızca admin kullanıcıların erişebileceği, yeni ürün oluşturma endpoint'i.",
+    tags=['Products'],
+    request=ProductSerializer,
+    responses=ProductSerializer
+)
+class AdminCreateProductView(generics.CreateAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminUser]
+
+@extend_schema(
+    summary="Admin: Ürün güncelle",
+    description="Yalnızca admin kullanıcıların erişebileceği, belirtilen ürünü günceller.",
+    tags=['Products'],
+    request=ProductSerializer,
+    responses=ProductSerializer
+)
+class AdminEditProductView(generics.UpdateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminUser]
     
-
-@api_view(['GET'])
-@permission_classes([IsAdminWithAPIKey])
-def admin_list_products(request):
-    """Admin: List all products"""
-    products = Product.objects.all()
-    serializer = ProductListSerializer(products, many=True)
-    return Response(serializer.data)
-
-
-@api_view(['GET'])
-@permission_classes([IsAdminWithAPIKey])
-def admin_product_details(request,pk):
-    """Admin: Get Product Details By Id"""
-    product = get_product_or_404(pk)    
-    serializer = ProductDetailsSerializer(product)
-    return Response(serializer.data)
-    
-
-@api_view(['POST'])
-@permission_classes([IsAdminUser])
-def admin_create_product(request):
-    """Admin: Create Product"""
-    serializer = ProductSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['PUT'])
-@permission_classes([IsAdminUser])
-def admin_edit_product(request,pk):
-    """Admin: Update Product"""
-    product = get_product_or_404(pk)
-    serializer = ProductSerializer(product,data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data)
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-
+@extend_schema(
+    summary="Admin: Ürünü sil",
+    description="Belirtilen ürünü, ilişkili tüm görselleri ve ürün klasörünü siler.",
+    responses={204: None},
+    tags=['Products']
+)
 class AdminDeleteProduct(generics.DestroyAPIView):
     queryset = Product.objects.all()
     permission_classes = [IsAdminUser]

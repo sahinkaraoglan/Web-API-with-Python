@@ -1,56 +1,56 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
+from rest_framework import generics, permissions
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from .models import Coupon
-from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser
 from .serializers import CouponSerializer
-from django.shortcuts import get_object_or_404
-from rest_framework import status
 
-class AdminCouponList(APIView):
-    permission_classes = [IsAdminUser]
-    def get(self, request):
-        coupons = Coupon.objects.all()
-        serializer = CouponSerializer(coupons, many=True)
-        return Response(serializer.data)
+@extend_schema_view(
+    get=extend_schema(
+        summary="Kuponları Listele (Admin)",
+        description="Tüm kuponları listeler. Sadece admin erişimine açıktır.",
+        tags=["Coupons"],
+        responses=CouponSerializer(many=True)
+    ),
+    post=extend_schema(
+        summary="Kupon Oluştur (Admin)",
+        description="Yeni bir kupon oluşturur. Sadece admin erişimine açıktır.",
+        tags=["Coupons"],
+        request=CouponSerializer,
+        responses={201: CouponSerializer}
+    )
+)
+class AdminCouponListCreateView(generics.ListCreateAPIView):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+    permission_classes = [permissions.IsAdminUser]
     
-
-class AdminCouponDetail(APIView):
-    permission_classes = [IsAdminUser]
-    def get(self, request, pk):
-        coupon = get_object_or_404(Coupon, pk=pk)
-        serializer = CouponSerializer(coupon)
-        return Response(serializer.data)
-    
-    def put(self, request, pk):
-        coupon = get_object_or_404(Coupon, pk=pk)
-        serializer = CouponSerializer(coupon, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    
-
-    def patch(self, request, pk):
-        coupon = get_object_or_404(Coupon, pk=pk)
-        serializer = CouponSerializer(coupon, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
-    
-
-    def delete(self, request, pk):
-        coupon = get_object_or_404(Coupon, pk=pk)
-        coupon.delete()
-        return Response(status= status.HTTP_204_NO_CONTENT)
-    
-
-class AdminCouponCreate(APIView):
-    permission_classes = [IsAdminUser]
-    def post(self, request):
-        serializer = CouponSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status= status.HTTP_201_CREATED)
-        return Response(serializer.errors, status= status.HTTP_400_BAD_REQUEST)
+@extend_schema_view(
+    get=extend_schema(
+        summary="Kupon Detayı (Admin)",
+        description="Belirli bir kuponun detaylarını döner. (Sadece admin erişimi)",
+        tags=["Coupons"],
+        responses=CouponSerializer
+    ),
+    put=extend_schema(
+        summary="Kuponu Güncelle (PUT) (Admin)",
+        description="Belirli bir kuponun tüm alanlarını günceller. (Sadece admin erişimi)",
+        request=CouponSerializer,
+        responses=CouponSerializer,
+        tags=["Coupons"]
+    ),
+    patch=extend_schema(
+        summary="Kuponu Güncelle (PATCH) (Admin)",
+        description="Belirli bir kuponun bazı alanlarını günceller. (Sadece admin erişimi)",
+        request=CouponSerializer,
+        responses=CouponSerializer,
+        tags=["Coupons"]
+    ),
+    delete=extend_schema(
+        summary="Kupon Sil (Admin)",
+        description="Belirli bir kuponu siler. (Sadece admin erişimi)",
+        tags=["Coupons"]
+    )
+)
+class AdminCouponRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Coupon.objects.all()
+    serializer_class = CouponSerializer
+    permission_classes = [permissions.IsAdminUser]

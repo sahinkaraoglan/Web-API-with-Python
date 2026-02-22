@@ -1,5 +1,16 @@
 from rest_framework import serializers
 from .models import Cart, CartItem
+from decimal import Decimal
+
+class EmptySerializer(serializers.Serializer):
+    pass
+
+class AddToCartSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(default=1, min_value=1)
+
+class CartItemUpdateSerializer(serializers.Serializer):
+    quantity = serializers.IntegerField(min_value=0)
 
 class CartItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
@@ -13,7 +24,7 @@ class CartItemSerializer(serializers.ModelSerializer):
             'product': {'read_only':True}
         }
 
-    def get_total_price(self, obj):
+    def get_total_price(self, obj) -> Decimal:
         return obj.get_total_price()
 
 class CartSerializer(serializers.ModelSerializer):
@@ -26,5 +37,5 @@ class CartSerializer(serializers.ModelSerializer):
         model = Cart
         fields = ['id','user','items','total_price']
 
-    def get_total_price(self, obj):
+    def get_total_price(self, obj) -> Decimal:
         return obj.get_total_price()
