@@ -3,8 +3,6 @@
 Bu proje Django ve Django REST Framework kullanılarak geliştirilmiş RESTful API tabanlı bir backend uygulamasıdır.  
 Kullanıcı yönetimi, ürün işlemleri, admin paneli ve temel e-ticaret mantığını içeren modüler bir API mimarisi üzerine kurulmuştur.
 
----
-
 ## 🛠️ Kullanılan Teknolojiler
 
 - Python
@@ -13,8 +11,6 @@ Kullanıcı yönetimi, ürün işlemleri, admin paneli ve temel e-ticaret mantı
 - PostgreSQL
 - JWT Authentication
 - Pillow
-
----
 
 ## 🚀 Özellikler
 
@@ -26,8 +22,6 @@ Kullanıcı yönetimi, ürün işlemleri, admin paneli ve temel e-ticaret mantı
 - Image upload (ImageField)
 - Hata yönetimi (Error Handling)
 - RESTful API mimarisi
-
----
 
 # ⚙️ Kurulum Adımları
 
