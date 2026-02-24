@@ -58,3 +58,28 @@ python manage.py runserver
 🌐 Tarayıcıdan Erişim
 http://127.0.0.1:8000/
 
+
+# 📸 API Documentation & Screenshots
+
+Below are Swagger and Postman screenshots demonstrating the core structure and functionality of the E-Commerce REST API.
+
+## 🧾 Swagger – Address Endpoints
+![Addresses](1.png)
+
+## 🛒 Swagger – Cart & Category Endpoints
+![Carts & Categories](2.png)
+
+## 💬 Swagger – Comment Endpoints
+![Comments](3.png)
+
+## 📦 Swagger – Product Management (Admin + Public)
+![Products](5.png)
+
+## 👤 Swagger – User & JWT Authentication Endpoints
+![Users](6.png)
+
+## 🧩 Swagger – Schema Models
+![Schemas](7.png)
+
+## 🔐 Postman – JWT Login Example
+![Postman Login](9.png)
